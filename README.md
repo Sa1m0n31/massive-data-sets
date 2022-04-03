@@ -2,3 +2,4 @@
 
 - hash sampling
 - reservoir sampling
+- Bloom filter
