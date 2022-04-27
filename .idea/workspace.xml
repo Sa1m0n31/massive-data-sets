@@ -2,8 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4e057a12-06cd-46a0-adc9-805b8750db64" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/ams.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ams.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/doc_to_search.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/documents/doc1" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/documents/doc2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/documents/doc3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/documents/doc4" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/documents/doc5" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/min_hash.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pages_graph.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -11,6 +17,13 @@
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -37,7 +50,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.ams">
+  <component name="RunManager" selected="Python.min_hash">
     <configuration default="true" type="PythonConfigurationType" factoryName="Python" singleton="false">
       <module name="emzd" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -122,6 +135,48 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="min_hash" type="PythonConfigurationType" factoryName="Python" singleton="false">
+      <module name="emzd" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Users\sajmo\AppData\Local\Programs\Python\Python38-32\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/.." />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/min_hash.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="pages_graph" type="PythonConfigurationType" factoryName="Python" singleton="false">
+      <module name="emzd" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Users\sajmo\AppData\Local\Programs\Python\Python38-32\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/.." />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pages_graph.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="proportional_sampling" type="PythonConfigurationType" factoryName="Python" singleton="false">
       <module name="emzd" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -168,6 +223,8 @@
       <item itemvalue="Python.emzd" />
       <item itemvalue="Python.bloom_filter" />
       <item itemvalue="Python.ams" />
+      <item itemvalue="Python.min_hash" />
+      <item itemvalue="Python.pages_graph" />
       <item itemvalue="Python.reservoir_sampling" />
       <item itemvalue="Python.proportional_sampling" />
     </list>
