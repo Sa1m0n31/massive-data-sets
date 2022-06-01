@@ -1,6 +1,6 @@
 import pandas as pd
 
-logs = pd.read_table('./log.txt', sep=' ', names=('a', 'b'))
+logs = pd.read_table('./emzd/log.txt', sep=' ', names=('a', 'b'))
 naive = logs.sample(frac=0.1)
 print(naive)
 

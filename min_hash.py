@@ -1,6 +1,7 @@
 import os
 import textwrap
 import random
+import mmh3
 
 
 class MinHash:
@@ -22,6 +23,7 @@ class MinHash:
     def min_hash_compare(self, doc1_index, doc2_index):
         signature1 = self.signatures[doc1_index]
         signature2 = self.signatures[doc2_index]
+        print('---')
         similarity = 0
 
         for s1, s2 in zip(signature1, signature2):
@@ -53,9 +55,19 @@ class MinHash:
 
         return rand_list
 
+    def get_number_of_all_shinglets(self):
+        big_set = set()
+        for s in self.shinglets:
+            new_set = set(s)
+            big_set = big_set.union(new_set)
+
+        return len(big_set)
+
     def minhash(self):
         a_values = self.get_list_of_random_values(100)
         b_values = self.get_list_of_random_values(100)
+
+        N = self.get_number_of_all_shinglets()
 
         for doc_index in range(len(self.docs)): # dla kazdego dokumentu
             shinglet = self.shinglets[doc_index]
@@ -65,7 +77,7 @@ class MinHash:
                 min_hash_value = self.prime + 1
 
                 for s in shinglet: # dla kazdego shingletu
-                    hash_value = (a_values[i] * hash(s) + b_values[i]) % self.prime
+                    hash_value = (a_values[i] * hash(s) + b_values[i]) % self.prime % N
 
                     if hash_value < min_hash_value:
                         min_hash_value = hash_value
