@@ -13,8 +13,8 @@ def get_number_of_items_with_tag(tag, col_name):
     return data[data.tag == tag].groupby(by=col_name).first().shape[0]
 
 
-def get_movies_with_tag(tag):
-    return data[data.tag == tag].groupby(by='movieId').first().index.array
+def get_movies_with_tag(tag, user_id):
+    return set(data[data.tag == tag].groupby(by='movieId').first().index.array).intersection(set(data[data.userId != user_id].groupby(by='movieId').first().index.array))
 
 
 def get_all_movies():
@@ -47,9 +47,7 @@ def jaccarda_compare(set1, set2):
 def get_similar_movies(userId, k):
     user_tags = data[data.userId == userId].tag
     user_tags_tf_idf = {}
-    movie_tags_tf_idf = {}
     all_similarities = {}
-    all_movies_profiles = []
 
     # Liczymy TF-IDF dla tagow uzytkownika
     for tag in list(set(user_tags)):
@@ -62,12 +60,12 @@ def get_similar_movies(userId, k):
 
     # Iterujemy po wszystkich tagach uzytkownika
     for user_tag in user_tags:
-        for movie in get_movies_with_tag(user_tag):
+        for movie in get_movies_with_tag(user_tag, userId):
             # Tworzymy wektor reprezentujacy film
             movie_tags = get_movie_tags(movie)
 
             # Liczymy podobienstwo miedzy profilami jako index jaccarda
-            all_similarities[movie] = jaccarda_compare(set(user_tags), set(movie_tags))
+            all_similarities[movie] = jaccarda_compare(set(user_profile), set(movie_tags))
 
     return list(dict(sorted(all_similarities.items(), key=lambda item: item[1], reverse=True)).keys())[:k]
 

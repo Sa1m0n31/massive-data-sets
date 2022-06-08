@@ -111,7 +111,6 @@ def PCY(data, support):
 
         return pairs_counter == 3
 
-    # CZWARTY PRZEBIEG - zliczamy kandydatow na zbiory czeste trzyelementowe
     c3 = {}
     for basket in data:
         threes_in_basket = list(combinations(basket, 3))

@@ -23,7 +23,7 @@ class MinHash:
     def min_hash_compare(self, doc1_index, doc2_index):
         signature1 = self.signatures[doc1_index]
         signature2 = self.signatures[doc2_index]
-        print('---')
+
         similarity = 0
 
         for s1, s2 in zip(signature1, signature2):
@@ -63,28 +63,61 @@ class MinHash:
 
         return len(big_set)
 
+    def get_all_shinglets(self):
+        big_set = set()
+        for s in self.shinglets:
+            big_set = big_set.union(set(s))
+
+        return big_set
+
     def minhash(self):
         a_values = self.get_list_of_random_values(100)
         b_values = self.get_list_of_random_values(100)
 
         N = self.get_number_of_all_shinglets()
+        shinglets = self.get_all_shinglets()
 
-        for doc_index in range(len(self.docs)): # dla kazdego dokumentu
-            shinglet = self.shinglets[doc_index]
-            signature = []
+        #print(shinglets)
 
-            for i in range(100): # dla kazdej funkcji haszujacej
-                min_hash_value = self.prime + 1
 
-                for s in shinglet: # dla kazdego shingletu
-                    hash_value = (a_values[i] * hash(s) + b_values[i]) % self.prime % N
+        #print(">>>>", N, self.prime)
 
-                    if hash_value < min_hash_value:
-                        min_hash_value = hash_value
+        signatures = [[self.prime + 1 for a in range(100)] for x in self.docs]
 
-                signature.append(min_hash_value)
+        # matrix
+        matrix = []
+        for r in shinglets:
+            new_row = []
+            for doc_index in range(len(self.docs)):
+                if r in self.shinglets[doc_index]:
+                    new_row.append(1)
+                else:
+                    new_row.append(0)
 
-            self.signatures.append(signature)
+            matrix.append(new_row)
+        import pandas as pd
+        print(matrix)
+        print(pd.DataFrame(matrix).head())
+        exit()
+        # min-hash
+        for r in range(len(shinglets)):
+            hash_values = []
+
+            for i in range(100):
+                hash_values.append(((a_values[i] * r + b_values[i]) % self.prime) % N)
+            print(">>>",len(hash_values))
+
+            for doc_index in range(len(self.docs)):
+                if matrix[r][doc_index] == 1:
+                    for j in range(100):
+                        if hash_values[j] < signatures[doc_index][j]:
+                            #print(hash_values[j], signatures[doc_index][j])
+
+                            signatures[doc_index][j] = hash_values[j]
+
+
+        print(signatures)
+        self.signatures = signatures
 
 
 min_hash = MinHash('./emzd/documents', open('./emzd/doc_to_search.txt'))
