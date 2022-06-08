@@ -54,13 +54,20 @@ def calculate_bias(user, movie):
 
     return user_average + movie_average - average_rating
 
-
-# Liczymy wspolczynnik korelacji Pearsona miedzy dwoma filmami
-def calculate_similarity(matrix):
+def calculate_similarity_item_item(matrix):
     i = 0
     for ind in columns:
         for col in columns:
             c = stats.pearsonr(matrix.loc[:, ind], matrix.loc[:, col])[0]
+            corelation_matrix.loc[ind, col] = c
+            i += 1
+
+
+def calculate_similarity_user_user(matrix):
+    i = 0
+    for ind in index:
+        for col in index:
+            c = stats.pearsonr(matrix.loc[ind, :], matrix.loc[col, :])[0]
             corelation_matrix.loc[ind, col] = c
             i += 1
 
@@ -89,8 +96,24 @@ def get_similar_movies(movie, user, k):
     return list(knn.index.array)
 
 
+# Znajdz uzytkownikow najblizszych do user, ktorzy ocenili film movie
+def get_similar_users(user, movie, k):
+    users = utility_matrix.loc[:, movie]
+    users_with_rating = []
+
+    # Zbieramy userow, ktorzy ocenili ten film
+    for movie_id, movie_rating in users.items():
+        if movie_rating != 0:
+            users_with_rating.append(movie_id)
+
+    # Wybieramy z nich k userow najbardziej podobnych do danego usera
+    user_corelations = corelation_matrix.filter(items=users_with_rating).loc[user]
+    knn = user_corelations.sort_values(ascending=False).head(k)
+    return list(knn.index.array)
+
+
 # Szacowanie oceny produktu i przez uzytkownika x
-def estimate_rating(movie, user):
+def estimate_rating_item_item(movie, user):
     similar_movies = get_similar_movies(movie, user, 10)
     bias = calculate_bias(user, movie)
 
@@ -100,6 +123,26 @@ def estimate_rating(movie, user):
         sim = get_similarity(movie, mv)
         rat = get_user_rating(user, movie)
         b = calculate_bias(user, mv)
+
+        numerator += sim * (rat - b)
+        denominator += abs(sim)
+
+    if denominator != 0:
+        return bias + (numerator / denominator)
+    else:
+        return 0
+
+
+def estimate_rating_user_user(movie, user):
+    similar_users = get_similar_users(user, movie, 10)
+    bias = calculate_bias(user, movie)
+
+    numerator, denominator = 0, 0
+
+    for usr in similar_users:
+        sim = get_similarity(user, usr)
+        rat = get_user_rating(user, movie)
+        b = calculate_bias(usr, movie)
 
         numerator += sim * (rat - b)
         denominator += abs(sim)
@@ -130,7 +173,7 @@ def get_random_value_from_array(arr):
     return arr[randrange(len(arr))]
 
 
-def get_test_set(matrix):
+def get_test_set_item_item(matrix):
     # Przechodzimy po filmach i zerujemy ocene jesli film ma inne oceny
     for i in range(100):
         movie_ratings = list(matrix.iloc[:, i])
@@ -145,20 +188,38 @@ def get_test_set(matrix):
             matrix.iloc[random_rating_index, i] = 0
 
 
+def get_test_set_user_user(matrix):
+    # Przechodzimy po userach i zerujemy ocene jesli user ma inne oceny
+    for i in range(100):
+        user_ratings = list(matrix.iloc[i, :])
+        real_user_ratings = [i for i, e in enumerate(user_ratings) if e != 0]
+        if len(real_user_ratings) > 1:
+            random_rating_index = get_random_value_from_array(real_user_ratings)
+            val = matrix.iloc[i, random_rating_index]
+            new_test_set_item = {
+                'user_index': i, 'movie_index': random_rating_index, 'rating': val
+            }
+            test_set.append(new_test_set_item)
+            matrix.iloc[i, random_rating_index] = 0
+
+
 # Wczytujemy dane
 all_data = pd.read_csv('./emzd/netflix.txt', names=['movie', 'user', 'rating'])
 test_set = []
 
 # Pobieramy uzytkownikow z liczba ocenionych filmow > 10
 v = all_data.user.value_counts()
-data = all_data[all_data.user.isin(v.index[v.gt(10)])]
+data = all_data[all_data.user.isin(v.index[v.gt(12)])]
 data = data.loc[:, (data != 0).any(axis=0)]
 
 utility_matrix = pd.pivot_table(data, values='rating', index='user', columns='movie')
 utility_matrix = utility_matrix.fillna(0)
 
+# ------------------------------------------------------------------
+
+# ITEM-ITEM
 # Wycinamy zbior testowy
-get_test_set(utility_matrix)
+get_test_set_item_item(utility_matrix)
 
 # Zerujemy elementy, ktore pobralismy do zbioru testowego
 for dic in test_set:
@@ -173,7 +234,7 @@ corelation_matrix = pd.DataFrame(index=columns, columns=columns)
 average_rating = get_average_rating(utility_matrix)
 
 # Obliczamy podobienstwo miedzy produktami jako wspolczynnik korelacji Pearsona
-calculate_similarity(utility_matrix)
+calculate_similarity_item_item(utility_matrix)
 
 # Szacujemy oceny dla filmow nieocenionych
 current_user = 0
@@ -185,7 +246,7 @@ for user, matrix_index in zip(index, utility_matrix.index):
     for movie in columns:
         rating = utility_matrix.loc[user, movie]
         if rating == 0:
-            e = estimate_rating(movie, user)
+            e = estimate_rating_item_item(movie, user)
             result_matrix.loc[user, movie] = e
         else:
             fixed_values_indexes.append([matrix_index, movie])
@@ -202,7 +263,58 @@ for test_dict in test_set:
 
 RMSE /= len(test_set)
 RMSE = math.sqrt(RMSE)
+
+print('ITEM-ITEM')
 print(RMSE)
 
-print(result_matrix)
-result_matrix.to_csv('training_result.csv')
+# ---------------------------------------------------------------------------------
+
+# USER-USER
+# Wycinamy zbior testowy
+get_test_set_item_item(utility_matrix)
+
+# Zerujemy elementy, ktore pobralismy do zbioru testowego
+for dic in test_set:
+    utility_matrix.iloc[dic['user_index'], dic['movie_index']] = 0
+
+columns = [int(c) for c in utility_matrix.columns]
+index = [int(i) for i in utility_matrix.index]
+
+corelation_matrix = pd.DataFrame(index=index, columns=index)
+
+# Obliczamy srednia wszystkich ocen
+average_rating = get_average_rating(utility_matrix)
+
+# Obliczamy podobienstwo miedzy uzytkownikami jako wspolczynnik korelacji Pearsona
+calculate_similarity_user_user(utility_matrix)
+
+# Szacujemy oceny dla filmow nieocenionych
+current_user = 0
+
+result_matrix = utility_matrix.copy()
+fixed_values_indexes = []
+
+for user, matrix_index in zip(index, utility_matrix.index):
+    for movie in columns:
+        rating = utility_matrix.loc[user, movie]
+        if rating == 0:
+            e = estimate_rating_user_user(movie, user)
+            result_matrix.loc[user, movie] = e
+        else:
+            fixed_values_indexes.append([matrix_index, movie])
+
+    current_user += 1
+
+# Normalizacja wartosci do przedzialu 0-5
+result_matrix = normalize_matrix_to_rating_range(result_matrix)
+
+# Test
+RMSE = 0
+for test_dict in test_set:
+    RMSE += (test_dict['rating'] - result_matrix.iloc[test_dict['user_index'], test_dict['movie_index']]) ** 2
+
+RMSE /= len(test_set)
+RMSE = math.sqrt(RMSE)
+
+print('USER-USER')
+print(RMSE)
