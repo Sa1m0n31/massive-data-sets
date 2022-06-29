@@ -164,7 +164,7 @@ def normalize_matrix_to_rating_range(matrix):
     for row in matrix.index:
         for col in matrix_cols:
             if [row, col] not in fixed_values_indexes:
-                normalized_matrix.loc[row, col] = (5 - 0) * (matrix.loc[row, col] - min_value) / (max_value - min_value)
+                normalized_matrix.loc[row, col] = round((5 - 0) * (matrix.loc[row, col] - min_value) / (max_value - min_value))
 
     return normalized_matrix
 
@@ -207,9 +207,9 @@ def get_test_set_user_user(matrix):
 all_data = pd.read_csv('./emzd/netflix.txt', names=['movie', 'user', 'rating'])
 test_set = []
 
-# Pobieramy uzytkownikow z liczba ocenionych filmow > 10
+# Pobieramy uzytkownikow z liczba ocenionych filmow > 12
 v = all_data.user.value_counts()
-data = all_data[all_data.user.isin(v.index[v.gt(12)])]
+data = all_data[all_data.user.isin(v.index[v.gt(10)])]
 data = data.loc[:, (data != 0).any(axis=0)]
 
 utility_matrix = pd.pivot_table(data, values='rating', index='user', columns='movie')

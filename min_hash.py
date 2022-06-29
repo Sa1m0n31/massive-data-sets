@@ -95,28 +95,20 @@ class MinHash:
                     new_row.append(0)
 
             matrix.append(new_row)
-        import pandas as pd
-        print(matrix)
-        print(pd.DataFrame(matrix).head())
-        exit()
+
         # min-hash
         for r in range(len(shinglets)):
             hash_values = []
 
             for i in range(100):
                 hash_values.append(((a_values[i] * r + b_values[i]) % self.prime) % N)
-            print(">>>",len(hash_values))
 
             for doc_index in range(len(self.docs)):
                 if matrix[r][doc_index] == 1:
                     for j in range(100):
                         if hash_values[j] < signatures[doc_index][j]:
-                            #print(hash_values[j], signatures[doc_index][j])
-
                             signatures[doc_index][j] = hash_values[j]
 
-
-        print(signatures)
         self.signatures = signatures
 
 

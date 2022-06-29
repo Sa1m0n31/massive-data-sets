@@ -1,12 +1,22 @@
 import random
+from collections import Counter
+
+
+def get_unique_letters_from_stream(stream):
+    unique_letters = []
+    for letter in stream:
+        if letter not in unique_letters:
+            unique_letters.append(letter)
+
+    return unique_letters
+
 
 class AMS:
-    def __init__(self, stream, t1, t2, t3):
-        self.stream_length = len(stream)
+    def __init__(self, stream, k, random_points_in_time):
+        self.stream_length = k
         self.stream = stream
-        self.t1 = t1
-        self.t2 = t2
-        self.t3 = t3
+        self.random_points_in_time = random_points_in_time
+        self.unique_letters = get_unique_letters_from_stream(stream)
 
     def second_moment(self):
         letter_counter = {}
@@ -22,36 +32,52 @@ class AMS:
 
         return second_moment_value
 
+    def get_letter_index(self, letter):
+        for l, index in zip(self.unique_letters, range(len(self.unique_letters))):
+            if l == letter:
+                return index
+
     def single_estimation(self, count):
-        return self.stream_length * (2 * count - 1)
+        return len(self.stream) * (2 * count - 1)
 
     def estimate(self):
-        letter_counter = [0, 0, 0]
-        for letter, index in zip(self.stream, range(self.stream_length)):
-            if letter == 'a' and index >= self.t1:
-                letter_counter[0] += 1
-            elif letter == 'b' and index >= self.t2:
-                letter_counter[1] += 1
-            elif letter == 'c' and index >= self.t3:
-                letter_counter[2] += 1
+        letter_counter = []
+        letters_to_trace = []
+        for letter, index in zip(self.stream, range(len(self.stream))):
+            if index in self.random_points_in_time:
+                letters_to_trace.append(letter)
+                letter_counter.append(1)
+            elif letter in letters_to_trace:
+                for c, c_index in zip(letter_counter, range(len(letter_counter))):
+                    if letters_to_trace[c_index] == letter:
+                        letter_counter[c_index] += 1
 
         estimations = list(map(self.single_estimation, letter_counter))
-        return round(sum(estimations) / len(estimations))
+
+        if len(estimations) != 0:
+            return round(sum(estimations) / len(estimations))
+        else:
+            return 0
 
 
-data = 'abcbdacdabdcaab'
+def get_number_of_unique_letters_in_stream(stream):
+    return len(set(list(stream)))
+
+
+data = 'abcbdacdabdcaabafdfsfdafafasdsfadsgdfasgdfasdgaf'
 estimations = []
+n = 3
 
-ams = AMS(data, 1, 1, 1)
+ams = AMS(data, n, map(lambda x: 1, range(n)))
 true_second_moment = ams.second_moment()
 
 # run estimations in loop 100 times
 for i in range(100):
-    random_points_in_time = random.choices(range(len(data)), k=3)
-    ams = AMS(data, random_points_in_time[0], random_points_in_time[1], random_points_in_time[2])
+    random_times = random.choices(range(len(data)), k=n)
+    ams = AMS(data, n, random_times)
     estimations.append(ams.estimate())
 
 estimations.sort()
 median_of_estimations = estimations[round(len(estimations)/2)]
-print(f"estimation: {median_of_estimations}")
-print(f"real second moment: {true_second_moment}")
+print(f"estymacja: {median_of_estimations}")
+print(f"prawdziwy drugi moment: {true_second_moment}")

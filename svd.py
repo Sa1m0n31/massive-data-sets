@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import math
+from random import randrange
 
 
 def error(R, P, Q):
@@ -9,6 +11,38 @@ def error(R, P, Q):
             if R[i][j] > 0:
                 err = err + (R[i][j] - np.dot(P[i, :], Q[:, j])) ** 2
     return err
+
+
+def get_random_value_from_array(arr):
+    return arr[randrange(len(arr))]
+
+
+def normalize_matrix_to_rating_range(matrix):
+    normalized_matrix = matrix
+
+    max_value = matrix.max()
+    min_value = matrix.min()
+
+    for row in range(len(matrix)):
+        for col in range(len(matrix[0])):
+            normalized_matrix[row, col] = round((5 - 1) * (matrix[row, col] - min_value) / (max_value - min_value))
+
+    return normalized_matrix
+
+
+def get_test_set(matrix):
+    # Przechodzimy po filmach i pobieramy ocene jesli film ma inne oceny
+    for i in range(100):
+        movie_ratings = list(matrix.iloc[:, i])
+        real_movie_ratings = [i for i, e in enumerate(movie_ratings) if e != 0]
+        if len(real_movie_ratings) > 1:
+            random_rating_index = get_random_value_from_array(real_movie_ratings)
+            val = matrix.iloc[random_rating_index, i]
+            new_test_set_item = {
+                'user_index': random_rating_index, 'movie_index': i, 'rating': val
+            }
+            test_set.append(new_test_set_item)
+            matrix.iloc[random_rating_index, i] = 0
 
 
 def matrix_factorization_with_regularisation(R, P, Q):
@@ -47,36 +81,45 @@ def matrix_factorization_without_regularisation(R, P, Q):
     return P, Q
 
 
-test_data = pd.read_csv('./emzd/netflix.txt', names=['movie', 'user', 'rating']).sample(frac=0.001)
+# Wczytujemy dane
+all_data = pd.read_csv('./emzd/netflix.txt', names=['movie', 'user', 'rating'])
+test_set = []
 
-# zamiast randoma wybrac tych userow, ktorzy maja duzo ocen > 20
+# Pobieramy uzytkownikow z liczba ocenionych filmow > 10
+v = all_data.user.value_counts()
+data = all_data[all_data.user.isin(v.index[v.gt(12)])]
+data = data.loc[:, (data != 0).any(axis=0)]
 
-utility_matrix = pd.pivot_table(test_data, values='rating', index='user', columns='movie')
+utility_matrix = pd.pivot_table(data, values='rating', index='user', columns='movie')
 utility_matrix = utility_matrix.fillna(0)
 
-R = utility_matrix.to_numpy()
+utility_matrix = utility_matrix / 5
 
-#
+# Wycinamy zbior testowy i zerujemy go
+get_test_set(utility_matrix)
+
+# SVD
+R = utility_matrix.to_numpy()
 N = len(R)
 M = len(R[0])
 K = 2
 P = np.random.rand(N, K)
 Q = np.random.rand(K, M)
 
-
 P1, Q1 = matrix_factorization_with_regularisation(R, P, Q)
 
-S = np.dot(P1, Q1)
-null_indexes = np.where(np.array(R) == 0)
+S = np.dot(P1, Q1) * 5
+
+result_matrix = normalize_matrix_to_rating_range(S)
 
 # Obliczanie bledu
-nindx = zip(null_indexes[0], null_indexes[1])
-err = 0.0
-for ni in range(len(R)):
-    for nj in range(len(R[0])):
-        if (ni, nj) not in nindx:
-            err += (R[ni][nj] - S[ni][nj]) ** 2
+RMSE = 0
+for test_dict in test_set:
+    RMSE += (test_dict['rating'] - S[test_dict['user_index'], test_dict['movie_index']]) ** 2
 
+RMSE /= len(test_set)
+RMSE = math.sqrt(RMSE)
 
 print('Wynik:')
 print(S)
+print(RMSE)
